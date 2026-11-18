@@ -1,5 +1,6 @@
 import { post } from "./api.js";
 import { esc, toast } from "./ui.js";
+import { peekBookIntent } from "./book-intent.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -225,7 +226,7 @@ export function renderBusinessRegister(el) {
       el.innerHTML = `<div class="auth"><div class="auth-card" style="text-align:center">
         <div style="font-size:48px"><img src=/images/check-circle.svg alt aria-hidden=true style=width:1em;height:1em;vertical-align:-0.125em></div>
         <h2 style="margin:10px 0">Đăng ký thành công</h2>
-        <p class="muted">Tài khoản doanh nghiệp đang chờ duyệt. Sau khi được kích hoạt, bạn có thể đăng nhập trang doanh nghiệp.</p>
+        <p class="muted">Tài khoản doanh nghiệp đang chờ duyệt. Sau khi được kích hoạt, bạn có thể đăng nhập trang doanh nghiệp.${peekBookIntent() ? " Khi đăng nhập trên trình duyệt này, hệ thống sẽ mở tiếp form đặt booking KOC bạn đã chọn." : ""}</p>
         <a href="#/login" class="btn primary" style="margin-top:18px">Về trang đăng nhập</a>
       </div></div>`;
     } catch (error) {

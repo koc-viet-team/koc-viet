@@ -13,6 +13,7 @@ import { renderBusiness } from "./business.js";
 import { renderAdmin } from "./admin.js";
 import { renderPartner } from "./partner.js";
 import { renderKocProfile, renderMarketplacePublic } from "./public.js";
+import { parseKocHash, takeBookIntent } from "./book-intent.js";
 import { LANDING_ROUTES, renderLandingBody } from "./landing/pages.js";
 import { bindLandingEvents } from "./landing/shared.js";
 import { autoAnimate } from "./animations.js";
@@ -152,7 +153,7 @@ async function route() {
   const hash = location.hash || "#/";
   // public routes (no auth)
   if (hash.startsWith("#/koc/")) {
-    return renderKocProfile(appEl, hash.split("/")[2]);
+    return renderKocProfile(appEl, parseKocHash(hash).id);
   }
   if (hash === "#/explore" || hash.startsWith("#/explore?")) {
     return renderMarketplacePublic(appEl);
@@ -333,6 +334,14 @@ async function doLogin() {
       sessionStorage.removeItem(PARTNER_INVITE_STORAGE);
       if (r.user.role === "koc") {
         goHash(partnerInviteHash(inviteToken));
+        return;
+      }
+    }
+    // Doanh nghiệp bấm "Đặt booking" ở hồ sơ KOC khi chưa đăng nhập → quay lại form book KOC đó.
+    if (r.user.role === "business") {
+      const intent = takeBookIntent();
+      if (intent) {
+        goHash("#/find?book=" + intent.id);
         return;
       }
     }

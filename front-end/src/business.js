@@ -23,6 +23,7 @@ import {
 } from "./ui.js";
 import { state, logout, enhancePortal } from "./app.js";
 import { renderMarketplaceEmbed } from "./public.js";
+import { isKocId } from "./book-intent.js";
 import { brandLogo, icon } from "./icons.js";
 import { autoAnimate } from "./animations.js";
 import { socialProfileUrl } from "./social-channels.js";
@@ -383,6 +384,12 @@ async function find(el) {
     openBookingForm(kocId, el),
     (kocId) => openKocProfile(kocId, el),
   );
+  // #/find?book=<id>: đến từ hồ sơ KOC công khai hoặc sau khi đăng nhập → mở sẵn form book.
+  const bookId = new URLSearchParams(location.hash.split("?")[1] || "").get("book");
+  if (isKocId(bookId)) {
+    history.replaceState(null, "", location.pathname + location.search + "#/find");
+    openBookingForm(bookId, el).catch((e) => toast(e.message, "err"));
+  }
 }
 
 const PLATFORMS = ["Shopee", "Lazada", "TikTok Shop", "Tiki", "Facebook Shop"];

@@ -1,6 +1,7 @@
 import { api, post } from './api.js';
 import { money, esc, stars, tierBadge, spinner, empty, pager, toast, modal, closeModal, num, skeletonKocGrid, skeletonStatCards, skeletonTable, avatarUrl } from './ui.js';
 import { state } from './app.js';
+import { parseKocHash, rememberBookIntent } from './book-intent.js';
 
 function pubShell(inner) {
   return `<div class="pub-shell-wrap" style="width:100%;min-height:100vh;background:#fff">
@@ -160,8 +161,14 @@ export async function renderKocProfile(el, id) {
       <h3 style="margin-bottom:8px;font-size:20px;color:var(--navy)">Bạn muốn đặt booking KOC này?</h3>
       <p class="muted" style="margin-bottom:16px;font-size:14px">Đăng ký tài khoản doanh nghiệp để gửi brief, xác nhận giá niêm yết và thanh toán an toàn qua ví đảm bảo.</p>
       <div class="row" style="justify-content:center;gap:12px;flex-wrap:wrap">
-        <a href="/#/dang-ky?role=business" class="btn primary" style="background:#ea583c;color:#fff;border:none;min-width:200px;font-weight:700;box-shadow:0 4px 16px rgba(234,88,60,0.35)">Đăng ký Doanh nghiệp</a>
-        <a href="#/login" class="btn ghost" style="min-width:180px">Đăng nhập để đặt booking</a>
+        ${state.user?.role === 'business'
+          ? `<a href="#/find?book=${esc(k.id)}" class="btn primary" style="background:#ea583c;color:#fff;border:none;min-width:200px;font-weight:700;box-shadow:0 4px 16px rgba(234,88,60,0.35)">Đặt booking</a>`
+          : `<a href="/#/dang-ky?role=business" data-book-intent class="btn primary" style="background:#ea583c;color:#fff;border:none;min-width:200px;font-weight:700;box-shadow:0 4px 16px rgba(234,88,60,0.35)">Đăng ký Doanh nghiệp</a>
+        <a href="#/login" data-book-intent class="btn ghost" style="min-width:180px">Đăng nhập để đặt booking</a>`}
       </div>
     </div>`;
+  // Nhớ KOC đang xem để sau khi đăng nhập (hoặc đăng ký rồi được duyệt) mở thẳng form book.
+  const { ref } = parseKocHash(location.hash);
+  content.querySelectorAll('[data-book-intent]').forEach((a) =>
+    a.addEventListener('click', () => rememberBookIntent(k.id, ref)));
 }
