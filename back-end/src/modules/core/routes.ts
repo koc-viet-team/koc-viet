@@ -2293,8 +2293,16 @@ p{color:#64748b;font-size:14px;margin:0 0 16px;line-height:1.5}
       bind.push(Number(q.get("minRating")));
     }
     if (q.get("search")) {
-      where.push(`name LIKE ?`);
-      bind.push("%" + q.get("search") + "%");
+      // Không phân biệt hoa thường và dấu: "mai" ra "Mai", "ngoc" ra "Ngọc".
+      const search = sqlSearch(["name"], q.get("search"));
+      where.push(`(${search.sql})`);
+      bind.push(...search.bindings);
+    }
+    // Giá tối đa: chỉ lấy KOC có ít nhất một mức giá ≤ ngân sách (lọc trong SQL để tổng số và số trang đúng).
+    const maxPrice = Number(q.get("maxPrice"));
+    if (q.get("maxPrice") && Number.isFinite(maxPrice) && maxPrice > 0) {
+      where.push(`EXISTS (SELECT 1 FROM koc_prices kp WHERE kp.koc_id=kocs.id AND kp.price<=?)`);
+      bind.push(Math.floor(maxPrice));
     }
     const w = "WHERE " + where.join(" AND ");
     const total = Number(
@@ -2314,9 +2322,6 @@ p{color:#64748b;font-size:14px;margin:0 0 16px;line-height:1.5}
       )
         .bind(r.id)
         .all();
-      let list = pr.results;
-      if (q.get("maxPrice"))
-        list = list.filter((x) => x.price <= Number(q.get("maxPrice")));
       const k = publicKoc(r);
       k.prices = pr.results;
       k.minPrice = pr.results.length
